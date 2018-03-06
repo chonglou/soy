@@ -5,6 +5,8 @@ import "path"
 const (
 	// ROOT root dir
 	ROOT = "tmp"
+	// TITLE title key
+	TITLE = "title"
 )
 
 // Config config filename

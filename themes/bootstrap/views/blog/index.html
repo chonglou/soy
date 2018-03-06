@@ -1,0 +1,5 @@
+<div class="container">
+  <div class="list-group">
+    {{range $k,$v:= .links}} <a href="{{$k}}" class="list-group-item list-group-item-action">{{$v}}</a> {{end}}
+  </div>
+</div>
