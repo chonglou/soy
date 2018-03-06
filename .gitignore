@@ -12,6 +12,4 @@
 .*.un~
 
 # Test
-/config/
 /tmp
-/public
