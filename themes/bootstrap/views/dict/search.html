@@ -1,0 +1,18 @@
+<div class="container">
+  <form id="dict-search">
+    {{.csrfField}}
+    <div class="form-group">
+      <label for="keywords">关键字</label>
+      <input type="text" class="form-control" id="keywords" name="keywords">
+    </div>
+    <button type="submit" class="btn btn-primary">查询</button>
+  </form>
+  <br/>
+  <div id="dict-results"></div>
+  <br/>
+  <ol>
+    {{range $k,$v := .dict}}
+    <li>{{$k}}: {{$v}}条记录</li>
+    {{end}}
+  </ol>
+</div>

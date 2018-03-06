@@ -17,3 +17,4 @@ govendor fetch github.com/BurntSushi/toml
 govendor fetch github.com/sirupsen/logrus
 govendor fetch github.com/sirupsen/logrus/hooks/syslog
 govendor fetch gopkg.in/gomail.v2
+govendor fetch github.com/kapmahc/stardict

@@ -2,6 +2,7 @@ package env
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"github.com/unrolled/render"
@@ -77,11 +79,22 @@ func init() {
 				})
 
 				addr := fmt.Sprintf(":%d", env.Port)
+				secrets, err := base64.StdEncoding.DecodeString(env.Secrets)
+				if err != nil {
+					return err
+				}
+
 				log.Infof("listen %s", addr)
+				CSRF := csrf.Protect(
+					secrets,
+					csrf.Secure(false),
+					csrf.RequestHeader("Authenticity-Token"),
+					csrf.FieldName("authenticity_token"),
+				)
 				// graceful shutdown
 				srv := &http.Server{
 					Addr:    addr,
-					Handler: router,
+					Handler: CSRF(router),
 				}
 
 				go func() {
@@ -156,9 +169,16 @@ func generateConfigToml() error {
 			},
 		)
 	}
+
+	secret, err := RandomBytes(32)
+	if err != nil {
+		return err
+	}
+
 	return toml.NewEncoder(fd).Encode(Env{
 		Port:           8080,
 		Theme:          "bootstrap",
+		Secrets:        base64.StdEncoding.EncodeToString(secret),
 		Administrators: []string{"change-me@localhost"},
 		Google: Google{
 			VerifyID: "google-site-verify-id",

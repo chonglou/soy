@@ -1,6 +1,9 @@
 package env
 
-import "path"
+import (
+	"crypto/rand"
+	"path"
+)
 
 const (
 	// ROOT root dir
@@ -8,6 +11,15 @@ const (
 	// TITLE title key
 	TITLE = "title"
 )
+
+// RandomBytes random bytes
+func RandomBytes(l int) ([]byte, error) {
+	buf := make([]byte, l)
+	if _, err := rand.Read(buf); err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
 
 // Config config filename
 func Config() string {
@@ -26,6 +38,7 @@ type SMTP struct {
 type Env struct {
 	Port           int               `toml:"port"`
 	Theme          string            `toml:"theme"`
+	Secrets        string            `toml:"secrets"`
 	Administrators []string          `toml:"administrators"`
 	SMTP           SMTP              `toml:"smtp"`
 	Google         Google            `toml:"google"`

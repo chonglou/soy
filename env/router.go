@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"github.com/unrolled/render"
@@ -25,7 +26,7 @@ func abort(w http.ResponseWriter, e error) {
 }
 
 // POST http post
-func POST(pat string, hnd func(*http.Request) (H, error)) {
+func POST(pat string, hnd func(*http.Request) (interface{}, error)) {
 	router.HandleFunc(pat, func(wrt http.ResponseWriter, req *http.Request) {
 		val, err := hnd(req)
 		if err != nil {
@@ -45,6 +46,7 @@ func GET(pat string, tpl string, hnd func(*http.Request) (H, error)) {
 			return
 		}
 		data["env"] = _env
+		data[csrf.TemplateTag] = csrf.TemplateField(req)
 		_render.HTML(wrt, http.StatusOK, tpl, data)
 	}).Methods(http.MethodGet)
 }

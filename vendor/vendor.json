@@ -273,6 +273,12 @@
 			"revisionTime": "2018-02-06T20:15:40Z"
 		},
 		{
+			"checksumSHA1": "NXjCygVQDinUDwy8Y7j+1KY7dfE=",
+			"path": "github.com/kapmahc/stardict",
+			"revision": "9732cbd4ae88c76b6cb44a17d41ce4ee7be236d9",
+			"revisionTime": "2017-03-23T22:25:13Z"
+		},
+		{
 			"checksumSHA1": "ljd3FhYRJ91cLZz3wsH9BQQ2JbA=",
 			"path": "github.com/pkg/errors",
 			"revision": "30136e27e2ac8d167177e8a583aa4c3fea5be833",
