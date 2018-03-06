@@ -1,11 +1,20 @@
 package env
 
 import (
+	"context"
 	"fmt"
+	"html/template"
+	"net/http"
 	"os"
+	"os/signal"
+	"path"
+	"strings"
+	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
+	"github.com/unrolled/render"
 	"github.com/urfave/cli"
 )
 
@@ -25,7 +34,18 @@ func init() {
 			Action: func(_ *cli.Context) error {
 				tpl := "%-16s %s\n"
 				fmt.Printf(tpl, "METHODS", "PATH")
-				return nil
+				return router.Walk(func(route *mux.Route, _ *mux.Router, _ []*mux.Route) error {
+					pat, err := route.GetPathTemplate()
+					if err != nil {
+						return err
+					}
+					mtd, err := route.GetMethods()
+					if err != nil {
+						return err
+					}
+					fmt.Printf(tpl, strings.Join(mtd, ","), pat)
+					return nil
+				})
 			},
 		},
 		cli.Command{
@@ -33,6 +53,43 @@ func init() {
 			Aliases: []string{"s"},
 			Usage:   "start the app server",
 			Action: func(_ *cli.Context) error {
+				var env Env
+				if _, err := toml.DecodeFile(Config(), &env); err != nil {
+					return err
+				}
+				_env = &env
+
+				_render = render.New(render.Options{
+					Directory:  path.Join("themes", env.Theme, "views"),
+					Layout:     "application/index",
+					Extensions: []string{".html"},
+					Funcs:      []template.FuncMap{},
+				})
+
+				addr := fmt.Sprintf(":%d", env.Port)
+				log.Infof("listen %s", addr)
+				// graceful shutdown
+				srv := &http.Server{
+					Addr:    addr,
+					Handler: router,
+				}
+
+				go func() {
+					if err := srv.ListenAndServe(); err != nil {
+						log.Error(err)
+					}
+				}()
+
+				quit := make(chan os.Signal, 1)
+				signal.Notify(quit, os.Interrupt)
+				<-quit
+
+				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				defer cancel()
+				if err := srv.Shutdown(ctx); err != nil {
+					return err
+				}
+				log.Info("shutting down")
 				return nil
 			},
 		},

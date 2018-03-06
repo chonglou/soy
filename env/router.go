@@ -1,25 +1,27 @@
 package env
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
-	"github.com/BurntSushi/toml"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
-	_render "github.com/unrolled/render"
+	"github.com/unrolled/render"
 )
 
 var (
-	router = mux.NewRouter()
-	render *_render.Render
+	router  = mux.NewRouter()
+	_render *render.Render
+	_env    *Env
 )
 
 // H hash
 type H map[string]interface{}
 
 func abort(w http.ResponseWriter, e error) {
-	render.HTML(w, http.StatusInternalServerError, "error", H{"reason": e.Error()})
+	log.Error(e)
+	_render.HTML(w, http.StatusInternalServerError, "error", H{"reason": e.Error()})
 }
 
 // POST http post
@@ -30,25 +32,20 @@ func POST(pat string, hnd func(*http.Request) (H, error)) {
 			abort(wrt, err)
 			return
 		}
-		render.JSON(wrt, http.StatusOK, val)
+		_render.JSON(wrt, http.StatusOK, val)
 	}).Methods(http.MethodPost)
 }
 
 // GET http get
 func GET(pat string, tpl string, hnd func(*http.Request) (H, error)) {
 	router.HandleFunc(pat, func(wrt http.ResponseWriter, req *http.Request) {
-		var env Env
-		if _, err := toml.DecodeFile(Config(), &env); err != nil {
-			abort(wrt, err)
-			return
-		}
 		data, err := hnd(req)
 		if err != nil {
 			abort(wrt, err)
 			return
 		}
-		data["env"] = env
-		render.HTML(wrt, http.StatusOK, tpl, data)
+		data["env"] = _env
+		_render.HTML(wrt, http.StatusOK, tpl, data)
 	}).Methods(http.MethodGet)
 }
 
@@ -61,6 +58,41 @@ func loggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// Home home url
+func Home(r *http.Request) string {
+	scheme := "http"
+	if r.TLS != nil {
+		scheme = "https"
+	}
+	return fmt.Sprintf("%s://%s", scheme, r.Host)
+}
+
 func init() {
 	router.Use(loggingMiddleware)
+	router.HandleFunc("/robots.txt", func(wrt http.ResponseWriter, req *http.Request) {
+		tpl := `User-agent: *
+Disallow:
+Crawl-delay: 10
+Sitemap: %s/sitemap.xml.gz`
+		_render.Text(wrt, http.StatusOK, fmt.Sprintf(tpl, Home(req)))
+	}).Methods(http.MethodGet)
+
+	router.HandleFunc("/sitemap.xml.gz", func(wrt http.ResponseWriter, req *http.Request) {
+		if err := sitemapXMLGz(wrt, Home(req)); err != nil {
+			abort(wrt, err)
+		}
+	}).Methods(http.MethodGet)
+
+	router.HandleFunc("/rss.atom", func(wrt http.ResponseWriter, req *http.Request) {
+		site := _env.Site
+		if err := rssRtom(
+			wrt,
+			Home(req),
+			site["title"],
+			site["description"],
+			site["author"],
+		); err != nil {
+			abort(wrt, err)
+		}
+	}).Methods(http.MethodGet)
 }

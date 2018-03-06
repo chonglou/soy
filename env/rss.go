@@ -1,7 +1,6 @@
 package env
 
 import (
-	"fmt"
 	"io"
 	"time"
 
@@ -13,26 +12,26 @@ var (
 )
 
 // RSSHandler rss handler
-type RSSHandler func(l string) ([]*feeds.Item, error)
+type RSSHandler func() ([]*feeds.Item, error)
 
 // RegisterRssHandler register rss handler
 func RegisterRssHandler(args ...RSSHandler) {
 	rss = append(rss, args...)
 }
 
-func rssRtom(wrt io.Writer, host, lang, title, dest string, author *feeds.Author) error {
+func rssRtom(wrt io.Writer, host, title, dest, author string) error {
 	now := time.Now()
 	feed := &feeds.Feed{
 		Title:       title,
-		Link:        &feeds.Link{Href: fmt.Sprintf("%s/?locale=%s", host, lang)},
+		Link:        &feeds.Link{Href: host},
 		Description: dest,
-		Author:      author,
+		Author:      &feeds.Author{Name: author},
 		Created:     now,
 		Items:       make([]*feeds.Item, 0),
 	}
 
 	for _, hnd := range rss {
-		items, err := hnd(lang)
+		items, err := hnd()
 		if err != nil {
 			return err
 		}
