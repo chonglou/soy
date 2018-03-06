@@ -21,7 +21,7 @@ type H map[string]interface{}
 
 func abort(w http.ResponseWriter, e error) {
 	log.Error(e)
-	_render.HTML(w, http.StatusInternalServerError, "error", H{"reason": e.Error()})
+	_render.Text(w, http.StatusInternalServerError, e.Error())
 }
 
 // POST http post
@@ -95,4 +95,17 @@ Sitemap: %s/sitemap.xml.gz`
 			abort(wrt, err)
 		}
 	}).Methods(http.MethodGet)
+
+	router.HandleFunc(`/google{id:[\w]+}.html`, func(wrt http.ResponseWriter, req *http.Request) {
+		id := _env.Google.VerifyID
+		vars := mux.Vars(req)
+		code := http.StatusNotFound
+		if vars["id"] == id {
+			code = http.StatusOK
+		}
+
+		tpl := "google-site-verification: google%s.html"
+		_render.Text(wrt, code, fmt.Sprintf(tpl, id))
+	}).Methods(http.MethodGet)
+
 }

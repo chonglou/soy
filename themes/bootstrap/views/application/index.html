@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-Hans">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="{{.env.Site.description}}">
+  <meta name="keywords" content="{{.env.Site.keywords}}">
+  <meta name="author" content="{{.env.Site.author}}">
+  <title>{{.title}}|{{.env.Site.subhead}}|{{.env.Site.title}}</title>
+  <link rel="icon" type="image/png" href="/global/favicon.png">
+  <link rel="stylesheet" href="/3rd/bootstrap/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/application.css">
+  <script src="/3rd/jquery/dist/jquery.min.js"></script>
+  <script src="/3rd/popper.js/dist/umd/popper.min.js"></script>
+  <script src="/3rd/bootstrap/dist/js/bootstrap.min.js"></script>
+  <script src="/global/main.js"></script>
+</head>
+
+<body>
+  {{template "application/header" .}}
+  <main role="main">{{ yield }} </main>
+  {{template "application/footer" .}}
+</body>
+
+</html>

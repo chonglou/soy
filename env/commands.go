@@ -59,6 +59,16 @@ func init() {
 				}
 				_env = &env
 
+				// static files
+				for k, v := range map[string]string{
+					"/3rd/":    "node_modules",
+					"/assets/": path.Join("themes", _env.Theme, "assets"),
+					"/global/": path.Join("themes", "global"),
+				} {
+					router.PathPrefix(k).Handler(http.StripPrefix(k, http.FileServer(http.Dir(v))))
+				}
+
+				// open render
 				_render = render.New(render.Options{
 					Directory:  path.Join("themes", env.Theme, "views"),
 					Layout:     "application/index",
@@ -124,7 +134,7 @@ func generateConfigToml() error {
 	for i := 1; i <= 6; i++ {
 		var it Link
 		it.Title = fmt.Sprintf("header %d", i)
-		it.URL = fmt.Sprintf("footer %d", i)
+		it.URL = fmt.Sprintf("/header-%d", i)
 		for j := 1; j <= 3; j++ {
 			it.Children = append(
 				it.Children,
@@ -150,9 +160,12 @@ func generateConfigToml() error {
 		Port:           8080,
 		Theme:          "bootstrap",
 		Administrators: []string{"change-me@localhost"},
-		ReCaptcha: ReCaptcha{
-			SiteKey:   "reCAPTCHA-site-key",
-			SecretKey: "reCAPTCHA-secret-key",
+		Google: Google{
+			VerifyID: "google-site-verify-id",
+			ReCaptcha: ReCaptcha{
+				SiteKey:   "reCAPTCHA-site-key",
+				SecretKey: "reCAPTCHA-secret-key",
+			},
 		},
 		SMTP: SMTP{
 			Host:     "smtp.gmail.com",

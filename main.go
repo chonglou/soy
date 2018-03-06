@@ -4,6 +4,9 @@ import (
 	"log"
 	"os"
 
+	_ "github.com/chonglou/soy/blog"
+	_ "github.com/chonglou/soy/cbeta"
+	_ "github.com/chonglou/soy/dict"
 	"github.com/chonglou/soy/env"
 )
 
