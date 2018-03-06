@@ -1,0 +1,17 @@
+# Build
+/dist*
+
+# Go
+/vendor/*/
+
+# Javascript
+/node_modules/
+
+# Vim
+.*.swp
+.*.un~
+
+# Test
+/config/
+/tmp
+/public
