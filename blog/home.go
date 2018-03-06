@@ -9,6 +9,7 @@ import (
 
 	"github.com/chonglou/soy/env"
 	"github.com/gorilla/mux"
+	"github.com/unrolled/render"
 )
 
 const (
@@ -20,7 +21,7 @@ func root() string {
 }
 
 func home(*http.Request) (env.H, error) {
-	return readMD("主页")
+	return readMD("主页.md")
 }
 
 func index(*http.Request) (env.H, error) {
@@ -33,7 +34,9 @@ func index(*http.Request) (env.H, error) {
 		if info.IsDir() {
 			return nil
 		}
-		// name := info.Name()
+		if filepath.Ext(info.Name()) != ext {
+			return nil
+		}
 		items["/blog"+path[len(rt):]] = path[len(rt)+1 : len(path)-len(ext)]
 		return nil
 	}); err != nil {
@@ -45,13 +48,32 @@ func index(*http.Request) (env.H, error) {
 	}, nil
 }
 
-func show(req *http.Request) (env.H, error) {
+func show(wrt http.ResponseWriter, req *http.Request, arg *env.Env, rdr *render.Render) {
 	vars := mux.Vars(req)
-	return readMD(vars["name"])
+	name := vars["name"]
+	if filepath.Ext(name) == ext {
+		data, err := readMD(name)
+		if err != nil {
+			env.Abort(wrt, err)
+			return
+		}
+		data["env"] = arg
+		rdr.HTML(wrt, http.StatusOK, "blog/show", data)
+		return
+	}
+
+	buf, err := ioutil.ReadFile(filepath.Join(root(), vars["name"]))
+	if err != nil {
+		rdr.Text(wrt, http.StatusInternalServerError, err.Error())
+		return
+	}
+	typ := http.DetectContentType(buf)
+	wrt.Header().Set("Content-type", typ)
+	rdr.Data(wrt, http.StatusOK, buf)
 }
 
 func readMD(fn string) (env.H, error) {
-	buf, err := ioutil.ReadFile(filepath.Join(root(), fn+ext))
+	buf, err := ioutil.ReadFile(filepath.Join(root(), fn))
 	if err != nil {
 		return nil, err
 	}
@@ -64,5 +86,6 @@ func readMD(fn string) (env.H, error) {
 func init() {
 	env.GET("/", "blog/show", home)
 	env.GET("/blog", "blog/index", index)
-	env.GET(`/blog/{name:[\w\W]*}.md`, "blog/show", show)
+	// env.GET(`/blog/{name:[\w\W]*}.md`, "blog/show", showMD)
+	env.HANDLE(http.MethodGet, `/blog/{name:[\w\W]*}`, show)
 }

@@ -20,7 +20,8 @@ var (
 // H hash
 type H map[string]interface{}
 
-func abort(w http.ResponseWriter, e error) {
+// Abort http abort
+func Abort(w http.ResponseWriter, e error) {
 	log.Error(e)
 	_render.Text(w, http.StatusInternalServerError, e.Error())
 }
@@ -30,11 +31,18 @@ func POST(pat string, hnd func(*http.Request) (interface{}, error)) {
 	router.HandleFunc(pat, func(wrt http.ResponseWriter, req *http.Request) {
 		val, err := hnd(req)
 		if err != nil {
-			abort(wrt, err)
+			Abort(wrt, err)
 			return
 		}
 		_render.JSON(wrt, http.StatusOK, val)
 	}).Methods(http.MethodPost)
+}
+
+// HANDLE http handle
+func HANDLE(met, pat string, hnd func(http.ResponseWriter, *http.Request, *Env, *render.Render)) {
+	router.HandleFunc(pat, func(wrt http.ResponseWriter, req *http.Request) {
+		hnd(wrt, req, _env, _render)
+	}).Methods(met)
 }
 
 // GET http get
@@ -42,7 +50,7 @@ func GET(pat string, tpl string, hnd func(*http.Request) (H, error)) {
 	router.HandleFunc(pat, func(wrt http.ResponseWriter, req *http.Request) {
 		data, err := hnd(req)
 		if err != nil {
-			abort(wrt, err)
+			Abort(wrt, err)
 			return
 		}
 		data["env"] = _env
@@ -81,7 +89,7 @@ Sitemap: %s/sitemap.xml.gz`
 
 	router.HandleFunc("/sitemap.xml.gz", func(wrt http.ResponseWriter, req *http.Request) {
 		if err := sitemapXMLGz(wrt, Home(req)); err != nil {
-			abort(wrt, err)
+			Abort(wrt, err)
 		}
 	}).Methods(http.MethodGet)
 
@@ -94,7 +102,7 @@ Sitemap: %s/sitemap.xml.gz`
 			site["description"],
 			site["author"],
 		); err != nil {
-			abort(wrt, err)
+			Abort(wrt, err)
 		}
 	}).Methods(http.MethodGet)
 
