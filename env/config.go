@@ -1,9 +1,16 @@
 package env
 
+import "path"
+
 const (
 	// ROOT root dir
 	ROOT = "tmp"
 )
+
+// Config config filename
+func Config() string {
+	return path.Join(ROOT, "config.toml")
+}
 
 // SMTP smtp
 type SMTP struct {
@@ -13,8 +20,8 @@ type SMTP struct {
 	Port     int    `toml:"port"`
 }
 
-// Config configuration model
-type Config struct {
+// Env configuration model
+type Env struct {
 	Port           int               `toml:"port"`
 	Theme          string            `toml:"theme"`
 	Administrators []string          `toml:"administrators"`

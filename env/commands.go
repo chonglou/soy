@@ -3,7 +3,6 @@ package env
 import (
 	"fmt"
 	"os"
-	"path"
 
 	"github.com/BurntSushi/toml"
 	log "github.com/sirupsen/logrus"
@@ -56,7 +55,7 @@ func init() {
 }
 
 func generateConfigToml() error {
-	fn := path.Join(ROOT, "config.toml")
+	fn := Config()
 	log.Infof("generate file %s\n", fn)
 	fd, err := os.OpenFile(fn, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
 	if err != nil {
@@ -90,7 +89,7 @@ func generateConfigToml() error {
 			},
 		)
 	}
-	return toml.NewEncoder(fd).Encode(Config{
+	return toml.NewEncoder(fd).Encode(Env{
 		Port:           8080,
 		Theme:          "bootstrap",
 		Administrators: []string{"change-me@localhost"},

@@ -7,6 +7,7 @@ govendor fetch github.com/ikeikeikeike/go-sitemap-generator/stm
 govendor fetch gopkg.in/go-playground/validator.v9
 govendor fetch github.com/go-playground/form
 govendor fetch github.com/gorilla/mux
+govendor fetch github.com/unrolled/render
 govendor fetch github.com/gorilla/csrf
 govendor fetch golang.org/x/crypto/bcrypt
 govendor fetch golang.org/x/text/language
